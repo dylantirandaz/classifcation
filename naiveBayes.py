@@ -60,8 +60,51 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     self.legalLabels.
     """
 
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    self.prior = util.Counter()  # Prior probability P(Y)
+    self.conditionalProb = {}  # Conditional probability P(F_i | Y)
+    
+    # Count label occurrences in the training data
+    for label in trainingLabels:
+        self.prior[label] += 1
+
+    # Normalize prior probabilities
+    self.prior.normalize()
+
+    # Initialize conditional probabilities for each feature and label
+    for label in self.legalLabels:
+        self.conditionalProb[label] = util.Counter()
+        for feature in self.features:
+            self.conditionalProb[label][feature] = 0
+
+    # Count feature occurrences for each label in the training data
+    for i in range(len(trainingData)):
+        datum = trainingData[i]
+        label = trainingLabels[i]
+        for feature, value in datum.items():
+            self.conditionalProb[label][feature] += value
+
+    bestAccuracy = 0
+    bestK = None
+
+    # Evaluate each k value and choose the best one
+    for k in kgrid:
+        # Apply Laplace smoothing with the current k value
+        for label in self.legalLabels:
+            for feature in self.features:
+                self.conditionalProb[label][feature] = (self.conditionalProb[label][feature] + k) / (self.prior[label] * len(trainingData) + k * 2)
+
+        # Classify the validation data and compute accuracy
+        predictions = self.classify(validationData)
+        accuracy = sum(predictions[i] == validationLabels[i] for i in range(len(validationLabels))) / len(validationLabels)
+
+        # Update best accuracy and k value if necessary
+        if accuracy > bestAccuracy:
+            bestAccuracy = accuracy
+            bestK = k
+
+    # Retrain with the best k value on the combined training and validation data
+    self.k = bestK
+    self.train(trainingData + validationData, trainingLabels + validationLabels, [], [])
         
   def classify(self, testData):
     """
@@ -88,8 +131,13 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     """
     logJoint = util.Counter()
     
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    for label in self.legalLabels:
+        logJoint[label] = math.log(self.prior[label])
+        for feature, value in datum.items():
+            if value > 0:
+                logJoint[label] += math.log(self.conditionalProb[label][feature])
+            else:
+                logJoint[label] += math.log(1 - self.conditionalProb[label][feature])
     
     return logJoint
   
@@ -102,11 +150,9 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     """
     featuresOdds = []
        
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    for feature in self.features:
+        odds = self.conditionalProb[label1][feature] / self.conditionalProb[label2][feature]
+        featuresOdds.append((feature, odds))
 
-    return featuresOdds
-    
-
-    
-      
+    featuresOdds.sort(key=lambda x: x[1], reverse=True)
+    return [feature for feature, odds in featuresOdds[:100]]
