@@ -58,71 +58,152 @@ def basicFeatureExtractorFace(datum):
 
 def enhancedFeatureExtractorDigit(datum):
   """
-  Your feature extraction playground.
-  
-  You should return a util.Counter() of features
-  for this datum (datum is of type samples.Datum).
-  
-  ## DESCRIBE YOUR ENHANCED FEATURES HERE...
-  
-  ##
-  """
-  features =  basicFeatureExtractorDigit(datum)
-
-  "*** YOUR CODE HERE ***"
-  
-  return features
-
+    Your feature extraction playground.
+    You should return a util.Counter() of features
+    for this datum (datum is of type samples.Datum).
+    ## DESCRIBE YOUR ENHANCED FEATURES HERE...
+    ##
+    """
+    features = basicFeatureExtractorDigit(datum)
+    
+    "*** YOUR CODE HERE ***"
+    # Calculate the number of white pixels
+    white_pixels = sum(1 for value in features.values() if value == 0)
+    features["num_white_pixels"] = white_pixels
+    
+    # Calculate the number of black pixels
+    black_pixels = sum(1 for value in features.values() if value == 1)
+    features["num_black_pixels"] = black_pixels
+    
+    # Calculate the ratio of white to black pixels
+    if black_pixels != 0:
+        white_to_black_ratio = white_pixels / float(black_pixels)
+        features["white_to_black_ratio"] = white_to_black_ratio
+    
+    # Calculate the center of mass of the digit
+    total_x = sum(x * value for (x, y), value in features.items())
+    total_y = sum(y * value for (x, y), value in features.items())
+    center_x = total_x / float(black_pixels)
+    center_y = total_y / float(black_pixels)
+    features["center_x"] = center_x
+    features["center_y"] = center_y
+    
+    return features
 
 def contestFeatureExtractorDigit(datum):
-  """
-  Specify features to use for the minicontest
-  """
-  features =  basicFeatureExtractorDigit(datum)
-  return features
+    """
+    Specify features to use for the minicontest
+    """
+    features = basicFeatureExtractorDigit(datum)
+    
+    # Calculate the number of connected components
+    # You can use your own implementation or a library like OpenCV
+    import cv2
+    import numpy as np
+    
+    # Convert the datum to a grayscale image
+    image = np.array(datum.getPixels()).reshape((DIGIT_DATUM_HEIGHT, DIGIT_DATUM_WIDTH))
+    image = cv2.threshold(image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+    
+    # Find connected components
+    num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(image, connectivity=8)
+    features["num_connected_components"] = num_labels - 1  # Exclude the background component
+    
+    # Calculate the aspect ratio of the bounding box
+    if num_labels > 1:
+        x, y, w, h = cv2.boundingRect(labels)
+        aspect_ratio = float(w) / h
+        features["aspect_ratio"] = aspect_ratio
+    
+    # Calculate the solidity (ratio of pixels in the region to pixels in the convex hull)
+    if num_labels > 1:
+        convex_hull_area = cv2.contourArea(cv2.convexHull(cv2.findNonZero(labels)))
+        digit_area = cv2.countNonZero(labels)
+        solidity = float(digit_area) / convex_hull_area
+        features["solidity"] = solidity
+    
+    return features
 
 def enhancedFeatureExtractorFace(datum):
-  """
-  Your feature extraction playground for faces.
-  It is your choice to modify this.
-  """
-  features =  basicFeatureExtractorFace(datum)
-  return features
+    """
+    Your feature extraction playground for faces.
+    It is your choice to modify this.
+    """
+    features = basicFeatureExtractorFace(datum)
+    
+    # Calculate the average intensity of pixels in the upper half of the face
+    upper_half_intensity = sum(datum.getPixel(x, y) for x in range(FACE_DATUM_WIDTH) for y in range(FACE_DATUM_HEIGHT // 2)) / float(FACE_DATUM_WIDTH * (FACE_DATUM_HEIGHT // 2))
+    features["upper_half_intensity"] = upper_half_intensity
+    
+    # Calculate the average intensity of pixels in the lower half of the face
+    lower_half_intensity = sum(datum.getPixel(x, y) for x in range(FACE_DATUM_WIDTH) for y in range(FACE_DATUM_HEIGHT // 2, FACE_DATUM_HEIGHT)) / float(FACE_DATUM_WIDTH * (FACE_DATUM_HEIGHT // 2))
+    features["lower_half_intensity"] = lower_half_intensity
+    
+    # Calculate the difference in intensity between the upper and lower halves
+    intensity_difference = upper_half_intensity - lower_half_intensity
+    features["intensity_difference"] = intensity_difference
+    
+    # Calculate the symmetry of the face
+    left_half_intensity = sum(datum.getPixel(x, y) for x in range(FACE_DATUM_WIDTH // 2) for y in range(FACE_DATUM_HEIGHT)) / float((FACE_DATUM_WIDTH // 2) * FACE_DATUM_HEIGHT)
+    right_half_intensity = sum(datum.getPixel(x, y) for x in range(FACE_DATUM_WIDTH // 2, FACE_DATUM_WIDTH) for y in range(FACE_DATUM_HEIGHT)) / float((FACE_DATUM_WIDTH // 2) * FACE_DATUM_HEIGHT)
+    symmetry = abs(left_half_intensity - right_half_intensity)
+    features["symmetry"] = symmetry
+    
+    return features
 
 def analysis(classifier, guesses, testLabels, testData, rawTestData, printImage):
-  """
-  This function is called after learning.
-  Include any code that you want here to help you analyze your results.
-  
-  Use the printImage(<list of pixels>) function to visualize features.
-  
-  An example of use has been given to you.
-  
-  - classifier is the trained classifier
-  - guesses is the list of labels predicted by your classifier on the test set
-  - testLabels is the list of true labels
-  - testData is the list of training datapoints (as util.Counter of features)
-  - rawTestData is the list of training datapoints (as samples.Datum)
-  - printImage is a method to visualize the features 
-  (see its use in the odds ratio part in runClassifier method)
-  
-  This code won't be evaluated. It is for your own optional use
-  (and you can modify the signature if you want).
-  """
-  
-  # Put any code here...
-  # Example of use:
-  for i in range(len(guesses)):
-      prediction = guesses[i]
-      truth = testLabels[i]
-      if (prediction != truth):
-          print "==================================="
-          print "Mistake on example %d" % i 
-          print "Predicted %d; truth is %d" % (prediction, truth)
-          print "Image: "
-          print rawTestData[i]
-          break
-
+    """
+    This function is called after learning.
+    Include any code that you want here to help you analyze your results.
+    Use the printImage(<list of pixels>) function to visualize features.
+    An example of use has been given to you.
+    - classifier is the trained classifier
+    - guesses is the list of labels predicted by your classifier on the test set
+    - testLabels is the list of true labels
+    - testData is the list of training datapoints (as util.Counter of features)
+    - rawTestData is the list of training datapoints (as samples.Datum)
+    - printImage is a method to visualize the features
+    (see its use in the odds ratio part in runClassifier method)
+    This code won't be evaluated. It is for your own optional use
+    (and you can modify the signature if you want).
+    """
+    # Calculate the accuracy for each class
+    class_accuracies = {}
+    class_counts = {}
+    for label in set(testLabels):
+        class_accuracies[label] = 0
+        class_counts[label] = 0
+    
+    for i in range(len(guesses)):
+        prediction = guesses[i]
+        truth = testLabels[i]
+        class_counts[truth] += 1
+        if prediction == truth:
+            class_accuracies[truth] += 1
+    
+    for label in class_accuracies:
+        class_accuracies[label] /= float(class_counts[label])
+        print "Accuracy for class %d: %.2f%%" % (label, class_accuracies[label] * 100)
+    
+    # Print the confusion matrix
+    confusion_matrix = util.Counter()
+    for i in range(len(guesses)):
+        confusion_matrix[(guesses[i], testLabels[i])] += 1
+    print "Confusion Matrix:"
+    print "     " + " ".join("%7d" % label for label in set(testLabels))
+    for guess in set(guesses):
+        print "%4d" % guess + " ".join("%7d" % confusion_matrix[(guess, true)] for true in set(testLabels))
+    
+    # Visualize misclassified examples
+    print "Misclassified examples:"
+    for i in range(len(guesses)):
+        if guesses[i] != testLabels[i]:
+            print "Example %d: Predicted %d, Actual %d" % (i, guesses[i], testLabels[i])
+            print "Image:"
+            printImage(rawTestData[i])
+            print "Features:"
+            print testData[i]
+            print ""
 
 ## =====================
 ## You don't have to modify any code below.
