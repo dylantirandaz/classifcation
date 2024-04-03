@@ -57,16 +57,13 @@ def basicFeatureExtractorFace(datum):
   return features
 
 def enhancedFeatureExtractorDigit(datum):
-  """
-    Your feature extraction playground.
+    """
+    Feature extraction playground.
     You should return a util.Counter() of features
     for this datum (datum is of type samples.Datum).
-    ## DESCRIBE YOUR ENHANCED FEATURES HERE...
-    ##
     """
     features = basicFeatureExtractorDigit(datum)
     
-    "*** YOUR CODE HERE ***"
     # Calculate the number of white pixels
     white_pixels = sum(1 for value in features.values() if value == 0)
     features["num_white_pixels"] = white_pixels
@@ -126,8 +123,7 @@ def contestFeatureExtractorDigit(datum):
 
 def enhancedFeatureExtractorFace(datum):
     """
-    Your feature extraction playground for faces.
-    It is your choice to modify this.
+    Feature extraction playground for faces.
     """
     features = basicFeatureExtractorFace(datum)
     
@@ -154,9 +150,7 @@ def enhancedFeatureExtractorFace(datum):
 def analysis(classifier, guesses, testLabels, testData, rawTestData, printImage):
     """
     This function is called after learning.
-    Include any code that you want here to help you analyze your results.
     Use the printImage(<list of pixels>) function to visualize features.
-    An example of use has been given to you.
     - classifier is the trained classifier
     - guesses is the list of labels predicted by your classifier on the test set
     - testLabels is the list of true labels
@@ -164,8 +158,6 @@ def analysis(classifier, guesses, testLabels, testData, rawTestData, printImage)
     - rawTestData is the list of training datapoints (as samples.Datum)
     - printImage is a method to visualize the features
     (see its use in the odds ratio part in runClassifier method)
-    This code won't be evaluated. It is for your own optional use
-    (and you can modify the signature if you want).
     """
     # Calculate the accuracy for each class
     class_accuracies = {}
@@ -204,10 +196,6 @@ def analysis(classifier, guesses, testLabels, testData, rawTestData, printImage)
             print "Features:"
             print testData[i]
             print ""
-
-## =====================
-## You don't have to modify any code below.
-## =====================
 
 
 class ImagePrinter:
