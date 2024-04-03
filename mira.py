@@ -33,7 +33,7 @@ class MiraClassifier:
             self.weights[label] = util.Counter() # this is the data-structure you should use
 
     def train(self, trainingData, trainingLabels, validationData, validationLabels):
-        "Outside shell to call your method. Do not modify this method."
+        "Outside shell to call method"
         self.features = trainingData[0].keys() # this could be useful for your code later...
 
         if (self.automaticTuning):
@@ -48,7 +48,7 @@ class MiraClassifier:
         This method sets self.weights using MIRA. Train the classifier for each value of C in Cgrid,
         then store the weights that give the best accuracy on the validationData.
         Use the provided self.weights[label] data structure so that
-        the classify method works correctly. Also, recall that a
+        the classify method works correctly. Note that a
         datum is a counter from features to values for those features
         representing a vector of values.
         """
@@ -100,7 +100,7 @@ class MiraClassifier:
         """
         Classifies each datum as the label that most closely matches the prototype vector
         for that label. See the project description for details.
-        Recall that a datum is a util.counter...
+        Note that a datum is a util.counter...
         """
         guesses = []
         for datum in data:
