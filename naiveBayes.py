@@ -26,13 +26,12 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
   def setSmoothing(self, k):
     """
     This is used by the main method to change the smoothing parameter before training.
-    Do not modify this method.
     """
     self.k = k
 
   def train(self, trainingData, trainingLabels, validationData, validationLabels):
     """
-    Outside shell to call your method. Do not modify this method.
+    Outside shell to call method
     """  
       
     # might be useful in your code later...
@@ -146,7 +145,7 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     Returns the 100 best features for the odds ratio:
             P(feature=1 | label1)/P(feature=1 | label2) 
     
-    Note: you may find 'self.features' a useful way to loop through all possible features
+    Note: 'self.features' may be a useful way to loop through all possible features
     """
     featuresOdds = []
        
